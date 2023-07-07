@@ -17,6 +17,8 @@ Run the image locally:
 docker run --rm -it --gpus all --shm-size=512m -p 6901:6901 -e VNC_DISABLE_AUTH=true --user root vnc-base
 ```
 
+Open a browser and go to: https://localhost:6901
+
 ## Configuration
 
 Available environment variables:
