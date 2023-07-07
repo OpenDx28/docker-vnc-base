@@ -11,7 +11,7 @@ on:
       - v*
 
 env:
-  IMAGE_NAME: ubuntu-desktop
+  IMAGE_NAME: vnc-base
 
 jobs:
   # Push image to GitHub Packages.
@@ -49,4 +49,3 @@ jobs:
           echo VERSION=$VERSION
           docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
-          echo "image_name=$IMAGE_ID:$VERSION" >> "$GITHUB_OUTPUT"
