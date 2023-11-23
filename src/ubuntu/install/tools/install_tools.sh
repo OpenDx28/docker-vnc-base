@@ -36,7 +36,7 @@ fi
 
 if [ "$DISTRO" = "ubuntu" ]; then
   #update mesa to latest
-  add-apt-repository ppa:kisak/turtle
+  add-apt-repository ppa:kisak/kisak-mesa
   apt-get update
   apt full-upgrade -y
 fi
