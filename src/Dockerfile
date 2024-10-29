@@ -159,7 +159,8 @@ RUN rm -rf package-lock.json \
     && npm run build \
     && rm -rf /usr/share/kasmvnc/www/dist \
     && mv dist /usr/share/kasmvnc/www/ \
-    && mv -f index.html /usr/share/kasmvnc/www/index.html
+    && mv -f index.html /usr/share/kasmvnc/www/index.html \
+	&& mv -f $HOME/noVNC/app/ui.js /usr/share/kasmvnc/www/app/ui.js
 
 WORKDIR $HOME
 RUN rm -rf noVNC

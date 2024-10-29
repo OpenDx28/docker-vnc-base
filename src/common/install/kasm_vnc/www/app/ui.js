@@ -13,14 +13,13 @@ window.addEventListener("load", function() {
     loader.src = "vendor/browser-es-module-loader/dist/browser-es-module-loader.js";
     document.head.appendChild(loader);
 });
-// window.addEventListener("load", function() {
-//     var connect_btn_el = document.getElementById("noVNC_connect_button");
-//     if (typeof(connect_btn_el) != 'undefined' && connect_btn_el != null)
-//     {
-//         connect_btn_el.click();
-//         UI.connect();
-//     }
-// });
+window.addEventListener("load", function() {
+    var connect_btn_el = document.getElementById("noVNC_connect_button");
+    if (typeof(connect_btn_el) != 'undefined' && connect_btn_el != null)
+    {
+        connect_btn_el.click();
+    }
+});
 
 window.updateSetting = (name, value) => {
     WebUtil.writeSetting(name, value);
@@ -142,15 +141,13 @@ const UI = {
 
         document.documentElement.classList.remove("noVNC_loading");
 
-        // let autoconnect = WebUtil.getConfigVar('autoconnect', false);
-        // if (autoconnect === 'true' || autoconnect == '1') {
-        //     autoconnect = true;
-        //     UI.connect();
-        // } else {
-        //     autoconnect = false;
-        // }
-
-        UI.connect();
+        let autoconnect = WebUtil.getConfigVar('autoconnect', false);
+        if (autoconnect === 'true' || autoconnect == '1') {
+            autoconnect = true;
+            UI.connect();
+        } else {
+            autoconnect = false;
+        }
 
         window.parent.postMessage({
             action: "noVNC_initialized",
@@ -215,20 +212,6 @@ const UI = {
         }
         qualityDropdown.appendChild(Object.assign(document.createElement("option"),{value:10,label:"Custom"}))
 
-        // if port == 80 (or 443) then it won't be present and should be
-        // set manually
-        let port = window.location.port;
-        if (!port) {
-            if (window.location.protocol.substring(0, 5) == 'https') {
-                port = 443;
-            } else if (window.location.protocol.substring(0, 4) == 'http') {
-                port = 80;
-            }
-        }
-
-        /* Populate the controls if defaults are provided in the URL */
-        UI.initSetting('host', window.location.hostname);
-        UI.initSetting('port', port);
         UI.initSetting('encrypt', (window.location.protocol === "https:"));
         UI.initSetting('view_clip', false);
         /* UI.initSetting('resize', 'off'); */
@@ -478,11 +461,11 @@ const UI = {
     addConnectionControlHandlers() {
         UI.addClickHandle('noVNC_disconnect_button', UI.disconnect);
 
-        // var connect_btn_el = document.getElementById("noVNC_connect_button");
-        // if (typeof(connect_btn_el) != 'undefined' && connect_btn_el != null)
-        // {
-        //     connect_btn_el.addEventListener('click', UI.connect);
-        // }
+        var connect_btn_el = document.getElementById("noVNC_connect_button");
+        if (typeof(connect_btn_el) != 'undefined' && connect_btn_el != null)
+        {
+            connect_btn_el.addEventListener('click', UI.connect);
+        }
         document.getElementById("noVNC_cancel_reconnect_button")
             .addEventListener('click', UI.cancelReconnect);
 
@@ -1363,23 +1346,26 @@ const UI = {
 
         UI.hideStatus();
 
-        if (!host) {
-            Log.Error("Can't connect when host is: " + host);
-            UI.showStatus(_("Must set host"), 'error');
-            return;
-        }
-
         UI.updateVisualState('connecting');
 
         let url;
 
         url = UI.getSetting('encrypt') ? 'wss' : 'ws';
 
-        url += '://' + host;
-        if (port) {
-            url += ':' + port;
+        if (host) {
+            url = new URL("https://" + host);
+			url.protocol = UI.getSetting('encrypt') ? 'wss:' : 'ws:';
+            if (port) {
+                url.port = port;
+            }
+            url.pathname = '/' + path;
+        } else {
+            // Current (May 2024) browsers support relative WebSocket
+            // URLs natively, but we need to support older browsers for
+            // some time.
+            url = new URL(path, location.href);
+            url.protocol = (window.location.protocol === "https:") ? 'wss:' : 'ws:';
         }
-        url += '/' + path;
 
         UI.rfb = new RFB(document.getElementById('noVNC_container'),
                         document.getElementById('noVNC_keyboardinput'),
@@ -1913,20 +1899,17 @@ const UI = {
     updatePointerLockButton() {
         // Only show the button if the pointer lock API is properly supported
         // AND in fullscreen.
-        // if (
-        //     UI.connected &&
-        //     (document.pointerLockElement !== undefined ||
-        //         document.mozPointerLockElement !== undefined)
-        // ) {
-        //     UI.showControlInput("noVNC_setting_pointer_lock");
-        //     UI.showControlInput("noVNC_game_mode_button");
-        // } else {
-        //     UI.hideControlInput("noVNC_setting_pointer_lock");
-        //     UI.hideControlInput("noVNC_game_mode_button");
-        // }
-
-        UI.hideControlInput("noVNC_setting_pointer_lock");
-        UI.hideControlInput("noVNC_game_mode_button");
+        if (
+            UI.connected &&
+            (document.pointerLockElement !== undefined ||
+                document.mozPointerLockElement !== undefined)
+        ) {
+            UI.showControlInput("noVNC_setting_pointer_lock");
+            UI.showControlInput("noVNC_game_mode_button");
+        } else {
+            UI.hideControlInput("noVNC_setting_pointer_lock");
+            UI.hideControlInput("noVNC_game_mode_button");
+        }
     },
 
     togglePointerLock() {
